@@ -1,7 +1,6 @@
 package com.forzeo.brandanalytics.repository;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
