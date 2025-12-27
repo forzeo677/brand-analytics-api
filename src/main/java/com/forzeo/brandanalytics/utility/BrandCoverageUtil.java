@@ -1,41 +1,50 @@
 package com.forzeo.brandanalytics.utility;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BrandCoverageUtil {
 
-    private static final Pattern BRAND_SECTION_PATTERN =
-            Pattern.compile(
-                    "\\*\\*(.*?)\\*\\*[\\s\\S]*?(?=\\n###|\\Z)",
-                    Pattern.MULTILINE
-            );
+	public static int countBrandSectionWords(String markdown, String brandName) {
 
-    public static int countBrandSectionWords(String markdown, String brandName) {
+	    String brandBlock = extractFullBrandBlock(markdown, brandName);
+	    return countWords(brandBlock);
+	}
 
-        Matcher matcher = BRAND_SECTION_PATTERN.matcher(markdown);
+	private static String extractFullBrandBlock(String markdown, String brandName) {
 
-        while (matcher.find()) {
-            String section = matcher.group();
-            if (section.contains("**" + brandName + "**")) {
-                return countWords(section);
-            }
-        }
-        return 0;
-    }
+	    Pattern pattern = Pattern.compile(
+	            "\\*\\*" + Pattern.quote(brandName) + "\\*\\*([\\s\\S]*?)(?=\\n###|$)",
+	            Pattern.CASE_INSENSITIVE
+	    );
 
-    public static int countAllBrandsWords(String markdown) {
+	    Matcher matcher = pattern.matcher(markdown);
+	    return matcher.find() ? matcher.group(1) : "";
+	}
 
-        Matcher matcher = BRAND_SECTION_PATTERN.matcher(markdown);
-        int total = 0;
+	public static int countAllBrandsWords(String markdown) {
 
-        while (matcher.find()) {
-            total += countWords(matcher.group());
-        }
-        return total;
-    }
+	    int total = 0;
+
+	    Map<String, Integer> brands =
+	            BrandParserLLMUtil.extractBrandMentions(markdown);
+
+	    for (String brand : brands.keySet()) {
+	        total += countBrandSectionWords(markdown, brand);
+	    }
+
+	    return total;
+	}
+
+
+   
 
     private static int countWords(String text) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
         return text.trim().split("\\s+").length;
     }
+
 }
